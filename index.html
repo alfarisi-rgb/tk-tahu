@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StreamPulse - Video Studio & Sharing Platform</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Font Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0f3ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            accent: '#a855f7',
+                            neon: '#06b6d4'
+                        },
+                        dark: {
+                            bg: '#0b0f17',
+                            card: '#131926',
+                            border: 'rgba(255, 255, 255, 0.08)',
+                            glass: 'rgba(19, 25, 38, 0.75)'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #0b0f17;
+            color: #f3f4f6;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* Glassmorphism utility */
+        .glass-panel {
+            background: rgba(19, 25, 38, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .glass-modal {
+            background: rgba(11, 15, 23, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0b0f17;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1f293d;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #374151;
+        }
+
+        /* Custom Range Slider */
+        input[type=range] {
+            -webkit-appearance: none;
+            background: transparent;
+        }
+        input[type=range]:focus {
+            outline: none;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 6px;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            height: 14px;
+            width: 14px;
+            border-radius: 50%;
+            background: #6366f1;
+            cursor: pointer;
+            -webkit-appearance: none;
+            margin-top: -4px;
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.8);
+        }
+
+        .glow-effect {
+            box-shadow: 0 0 25px -5px rgba(99, 102, 241, 0.3);
+        }
+
+        .glow-hover:hover {
+            box-shadow: 0 0 20px -3px rgba(168, 85, 247, 0.5);
+            transform: translateY(-2px);
+            transition: all 0.3s ease;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Navigation Header -->
+    <header class="sticky top-0 z-40 glass-panel border-b border-dark-border">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+            <!-- Brand Logo -->
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('feed')">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-brand-accent flex items-center justify-center shadow-lg shadow-brand-500/30">
+                    <i data-lucide="play" class="w-5 h-5 text-white fill-white"></i>
+                </div>
+                <span class="text-xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-white via-indigo-200 to-brand-accent tracking-wide">
+                    Stream<span class="text-brand-500">Pulse</span>
+                </span>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="flex-1 max-w-xl mx-4 hidden md:block">
+                <div class="relative">
+                    <i data-lucide="search" class="absolute left-3.5 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+                    <input type="text" id="searchInput" placeholder="Cari video, deskripsi, atau tag..." 
+                           class="w-full bg-slate-900/80 border border-dark-border rounded-full pl-10 pr-4 py-2 text-sm text-gray-200 focus:outline-none focus:border-brand-500 transition-colors placeholder-gray-500">
+                </div>
+            </div>
+
+            <!-- Header Actions -->
+            <div class="flex items-center space-x-3">
+                <button onclick="switchTab('studio')" class="glow-hover flex items-center space-x-2 bg-gradient-to-r from-brand-600 to-brand-accent text-white px-4 py-2 rounded-xl text-sm font-semibold transition-all">
+                    <i data-lucide="video" class="w-4 h-4"></i>
+                    <span class="hidden sm:inline">Buat Video</span>
+                </button>
+                <div class="w-9 h-9 rounded-full bg-slate-800 border border-brand-500/40 p-0.5 cursor-pointer">
+                    <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" alt="Avatar" class="w-full h-full rounded-full object-cover">
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+        <!-- VIEW 1: VIDEO FEED & EXPLORER -->
+        <section id="view-feed" class="space-y-6">
+            <!-- Filter & Search Section -->
+            <div class="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4">
+                <!-- Mobile Search -->
+                <div class="relative block md:hidden">
+                    <i data-lucide="search" class="absolute left-3.5 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+                    <input type="text" id="mobileSearchInput" placeholder="Cari video..." 
+                           class="w-full bg-slate-900/80 border border-dark-border rounded-xl pl-10 pr-4 py-2 text-sm text-gray-200 focus:outline-none focus:border-brand-500">
+                </div>
+
+                <!-- Category Filters -->
+                <div class="flex items-center space-x-2 overflow-x-auto pb-2 md:pb-0 scrollbar-none" id="categoryContainer">
+                    <!-- Dynamic categories rendered here -->
+                </div>
+
+                <div class="text-xs text-gray-400 self-end md:self-auto flex items-center gap-1">
+                    <i data-lucide="layers" class="w-3.5 h-3.5"></i>
+                    <span id="videoCount">0 Video Tersedia</span>
+                </div>
+            </div>
+
+            <!-- Video Grid -->
+            <div id="videoGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <!-- Video Cards will be inserted dynamically -->
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyState" class="hidden flex-col items-center justify-center py-16 text-center">
+                <div class="w-20 h-20 bg-slate-800/50 rounded-full flex items-center justify-center text-gray-500 mb-4">
+                    <i data-lucide="film" class="w-10 h-10"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-300">Belum Ada Video</h3>
+                <p class="text-sm text-gray-500 max-w-sm mt-1">Jadilah yang pertama mengunggah video menarik di studio kami!</p>
+                <button onclick="switchTab('studio')" class="mt-4 px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white text-sm font-medium rounded-xl transition">
+                    Buka Studio Upload
+                </button>
+            </div>
+        </section>
+
+        <!-- VIEW 2: VIDEO STUDIO / UPLOAD -->
+        <section id="view-studio" class="hidden space-y-6 max-w-4xl mx-auto">
+            <div class="flex items-center justify-between border-b border-dark-border pb-4">
+                <div>
+                    <h1 class="text-2xl font-bold text-white flex items-center gap-2">
+                        <i data-lucide="clapperboard" class="text-brand-accent"></i> Studio Pembuatan Video
+                    </h1>
+                    <p class="text-sm text-gray-400">Unggah, sesuaikan thumbnail, dan bagikan karya Anda</p>
+                </div>
+                <button onclick="switchTab('feed')" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-sm text-gray-300 transition flex items-center gap-1.5">
+                    <i data-lucide="x" class="w-4 h-4"></i> Batal
+                </button>
+            </div>
+
+            <form id="uploadForm" onsubmit="handleVideoUpload(event)" class="space-y-6">
+                <!-- Drop Zone & Video Selection -->
+                <div class="glass-panel p-6 rounded-2xl border-dashed border-2 border-slate-700 hover:border-brand-500 transition-colors relative" id="dropZone">
+                    <input type="file" id="videoFileInput" accept="video/mp4,video/webm" class="hidden" onchange="handleFileSelect(event)">
+                    
+                    <div id="uploadPrompt" class="flex flex-col items-center justify-center py-10 cursor-pointer" onclick="document.getElementById('videoFileInput').click()">
+                        <div class="w-16 h-16 rounded-2xl bg-brand-500/10 flex items-center justify-center text-brand-500 mb-3 glow-effect">
+                            <i data-lucide="upload-cloud" class="w-8 h-8"></i>
+                        </div>
+                        <p class="text-base font-medium text-gray-200">Klik atau geser file video ke sini</p>
+                        <p class="text-xs text-gray-500 mt-1">Mendukung MP4 atau WebM (Maks. Simulasi Browser Browser Memory)</p>
+                    </div>
+
+                    <!-- Video Preview Container (Hidden initially) -->
+                    <div id="previewWrapper" class="hidden space-y-4">
+                        <div class="relative rounded-xl overflow-hidden bg-black aspect-video group">
+                            <video id="studioVideoPlayer" class="w-full h-full object-contain"></video>
+                            
+                            <!-- Custom Player Controls Bar -->
+                            <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent p-4 opacity-90 transition-opacity">
+                                <div class="flex flex-col gap-2">
+                                    <!-- Seekbar -->
+                                    <input type="range" id="studioSeekbar" min="0" max="100" value="0" class="w-full h-1 bg-white/30 rounded cursor-pointer">
+                                    
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center space-x-3">
+                                            <button type="button" id="studioPlayBtn" onclick="toggleStudioPlay()" class="text-white hover:text-brand-500">
+                                                <i data-lucide="play" class="w-5 h-5"></i>
+                                            </button>
+                                            <span id="studioTimeDisplay" class="text-xs text-gray-300 font-mono">00:00 / 00:00</span>
+                                        </div>
+                                        <div class="flex items-center space-x-2">
+                                            <i data-lucide="volume-2" class="w-4 h-4 text-gray-400"></i>
+                                            <input type="range" id="studioVolume" min="0" max="1" step="0.1" value="1" oninput="setStudioVolume(this.value)" class="w-16">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-between items-center text-xs text-gray-400 bg-slate-900/60 p-3 rounded-xl border border-dark-border">
+                            <span id="fileInfoText">File dimuat</span>
+                            <button type="button" onclick="document.getElementById('videoFileInput').click()" class="text-brand-500 hover:underline">Ganti Video</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Thumbnail Generator Section -->
+                <div id="thumbnailSection" class="glass-panel p-6 rounded-2xl space-y-4 hidden">
+                    <h3 class="text-sm font-semibold text-gray-200 flex items-center gap-2">
+                        <i data-lucide="image" class="w-4 h-4 text-brand-accent"></i> Generator Thumbnail Video
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+                        <div>
+                            <p class="text-xs text-gray-400 mb-2">Geser video ke timestamp yang diinginkan lalu klik tombol di bawah untuk mengambil gambar frame:</p>
+                            <button type="button" onclick="captureFrameAsThumbnail()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-brand-100 rounded-xl border border-dark-border flex items-center gap-2 transition">
+                                <i data-lucide="camera" class="w-4 h-4"></i> Tangkap Frame Saat Ini
+                            </button>
+                        </div>
+                        
+                        <div class="flex items-center justify-center border border-dark-border rounded-xl p-2 bg-slate-950/50 min-h-[120px]">
+                            <img id="thumbnailPreview" src="" alt="Thumbnail Preview" class="max-h-28 rounded object-cover hidden">
+                            <span id="noThumbText" class="text-xs text-gray-500">Belum ada thumbnail ditangkap</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Metadata Form -->
+                <div class="glass-panel p-6 rounded-2xl space-y-4">
+                    <h3 class="text-sm font-semibold text-gray-200 flex items-center gap-2">
+                        <i data-lucide="file-text" class="w-4 h-4 text-brand-500"></i> Detail Meta Video
+                    </h3>
+
+                    <div>
+                        <label class="block text-xs font-medium text-gray-400 mb-1">Judul Video *</label>
+                        <input type="text" id="videoTitle" required placeholder="Berikan judul yang menarik..." 
+                               class="w-full bg-slate-900 border border-dark-border rounded-xl px-4 py-2.5 text-sm text-gray-100 focus:outline-none focus:border-brand-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-gray-400 mb-1">Deskripsi</label>
+                        <textarea id="videoDescription" rows="3" placeholder="Jelaskan secara singkat isi video ini..." 
+                                  class="w-full bg-slate-900 border border-dark-border rounded-xl px-4 py-2.5 text-sm text-gray-100 focus:outline-none focus:border-brand-500 resize-none"></textarea>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-400 mb-1">Kategori</label>
+                            <select id="videoCategory" class="w-full bg-slate-900 border border-dark-border rounded-xl px-4 py-2.5 text-sm text-gray-100 focus:outline-none focus:border-brand-500">
+                                <option value="Teknologi">Teknologi</option>
+                                <option value="Gaming">Gaming</option>
+                                <option value="Musik">Musik</option>
+                                <option value="Edukasi">Edukasi</option>
+                                <option value="Hiburan">Hiburan</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-400 mb-1">Visibilitas</label>
+                            <select id="videoVisibility" class="w-full bg-slate-900 border border-dark-border rounded-xl px-4 py-2.5 text-sm text-gray-100 focus:outline-none focus:border-brand-500">
+                                <option value="Publik">Publik</option>
+                                <option value="Privat">Privat</option>
+                                <option value="Unlisted">Unlisted</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" id="publishBtn" disabled class="w-full py-3.5 bg-gradient-to-r from-brand-600 to-brand-accent opacity-50 cursor-not-allowed text-white font-semibold rounded-xl transition shadow-lg flex items-center justify-center gap-2">
+                    <i data-lucide="send" class="w-5 h-5"></i> Publikasikan Video
+                </button>
+            </form>
+        </section>
+    </main>
+
+    <!-- VIEW MODAL: WATCH VIDEO MODAL -->
+    <div id="watchModal" class="fixed inset-0 z-50 glass-modal hidden flex items-center justify-center p-2 sm:p-4 md:p-6 overflow-y-auto">
+        <div class="relative w-full max-w-5xl bg-slate-900 border border-dark-border rounded-2xl shadow-2xl overflow-hidden my-auto">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between p-4 border-b border-dark-border bg-slate-950/60">
+                <span class="text-xs font-semibold px-2.5 py-1 rounded-md bg-brand-500/20 text-brand-accent uppercase tracking-wider" id="modalCategory">Kategori</span>
+                <button onclick="closeWatchModal()" class="text-gray-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+
+            <!-- Player & Content Container -->
+            <div class="max-h-[80vh] overflow-y-auto">
+                <!-- Video Player Container -->
+                <div class="relative bg-black aspect-video group">
+                    <video id="mainVideoPlayer" class="w-full h-full object-contain"></video>
+                    
+                    <!-- Player Controls Overlay -->
+                    <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent p-4 transition-opacity opacity-0 group-hover:opacity-100">
+                        <!-- Progress Bar -->
+                        <input type="range" id="mainSeekbar" min="0" max="100" value="0" class="w-full h-1.5 bg-white/20 rounded cursor-pointer mb-3">
+                        
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-4">
+                                <button onclick="toggleMainPlay()" class="text-white hover:text-brand-500 transition">
+                                    <i data-lucide="play" id="mainPlayIcon" class="w-6 h-6"></i>
+                                </button>
+                                <span id="mainTimeDisplay" class="text-xs text-gray-300 font-mono">00:00 / 00:00</span>
+                            </div>
+
+                            <div class="flex items-center space-x-3">
+                                <!-- Speed selector -->
+                                <select onchange="setMainSpeed(this.value)" class="bg-slate-800/80 text-xs text-gray-200 border border-dark-border rounded px-1.5 py-1">
+                                    <option value="0.5">0.5x</option>
+                                    <option value="1" selected>1.0x</option>
+                                    <option value="1.5">1.5x</option>
+                                    <option value="2">2.0x</option>
+                                </select>
+                                <!-- Volume -->
+                                <button onclick="toggleMainMute()" class="text-gray-300 hover:text-white">
+                                    <i data-lucide="volume-2" id="mainVolumeIcon" class="w-5 h-5"></i>
+                                </button>
+                                <input type="range" id="mainVolume" min="0" max="1" step="0.1" value="1" oninput="setMainVolume(this.value)" class="w-16">
+                                <!-- Fullscreen -->
+                                <button onclick="toggleFullscreen()" class="text-gray-300 hover:text-white">
+                                    <i data-lucide="maximize" class="w-5 h-5"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Video Information & Actions Bar -->
+                <div class="p-6 space-y-6">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-dark-border pb-6">
+                        <div>
+                            <h2 class="text-xl font-bold text-white" id="modalTitle">Judul Video</h2>
+                            <div class="flex items-center gap-3 text-xs text-gray-400 mt-2">
+                                <span id="modalViews">0 ditonton</span>
+                                <span>•</span>
+                                <span id="modalDate">Baru saja</span>
+                            </div>
+                        </div>
+
+                        <!-- Interaction Buttons -->
+                        <div class="flex items-center gap-3">
+                            <button onclick="handleLike()" id="likeBtn" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-gray-200 transition">
+                                <i data-lucide="thumbs-up" class="w-4 h-4"></i>
+                                <span id="likeCount">0</span>
+                            </button>
+                            <button onclick="handleBookmark()" id="bookmarkBtn" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-gray-200 transition">
+                                <i data-lucide="bookmark" class="w-4 h-4"></i>
+                                <span>Simpan</span>
+                            </button>
+                            <button onclick="shareVideo()" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-gray-200 transition">
+                                <i data-lucide="share-2" class="w-4 h-4"></i>
+                                <span>Bagikan</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Creator Info & Description -->
+                    <div class="bg-slate-950/40 p-4 rounded-xl border border-dark-border space-y-3">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-full bg-brand-600 flex items-center justify-center font-bold text-white">
+                                U
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-semibold text-gray-200">Kreator StreamPulse</h4>
+                                <p class="text-xs text-gray-400">Pengunggah Komunitas</p>
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-300 leading-relaxed whitespace-pre-line" id="modalDescription">Deskripsi video akan tampil di sini...</p>
+                    </div>
+
+                    <!-- Comments Section -->
+                    <div class="space-y-4 pt-2">
+                        <h3 class="text-base font-bold text-white flex items-center gap-2">
+                            <i data-lucide="message-square" class="w-5 h-5 text-brand-500"></i> Komentar (<span id="commentCount">0</span>)
+                        </h3>
+
+                        <!-- Add Comment Box -->
+                        <div class="flex gap-3">
+                            <div class="w-8 h-8 rounded-full bg-slate-800 border border-brand-500/40 flex-shrink-0 flex items-center justify-center text-xs font-bold text-brand-accent">
+                                ME
+                            </div>
+                            <div class="flex-1 space-y-2">
+                                <textarea id="commentInput" rows="2" placeholder="Tulis komentar kamu..." 
+                                          class="w-full bg-slate-950 border border-dark-border rounded-xl p-3 text-xs text-gray-200 focus:outline-none focus:border-brand-500 resize-none"></textarea>
+                                <button onclick="addComment()" class="px-4 py-1.5 bg-brand-600 hover:bg-brand-500 text-white text-xs font-medium rounded-lg transition float-right">
+                                    Kirim
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Comments List -->
+                        <div id="commentsContainer" class="space-y-3 pt-4 border-t border-dark-border/50">
+                            <!-- Dynamic Comments -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 glass-panel border border-brand-500/50 text-white px-4 py-3 rounded-xl shadow-xl flex items-center space-x-3 transition-transform translate-y-24 opacity-0 pointer-events-none">
+        <i data-lucide="check-circle" class="w-5 h-5 text-brand-accent" id="toastIcon"></i>
+        <span class="text-sm font-medium" id="toastMessage">Pesan Notifikasi</span>
+    </div>
+
+    <script>
+        // IndexedDB Configuration for Storing Large Blob Data (Video Files)
+        const DB_NAME = 'StreamPulseDB';
+        const DB_VERSION = 1;
+        let db;
+
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                request.onupgradeneeded = (e) => {
+                    const database = e.target.result;
+                    if (!database.objectStoreNames.contains('videos')) {
+                        database.createObjectStore('videos', { keyPath: 'id' });
+                    }
+                };
+                request.onsuccess = (e) => {
+                    db = e.target.result;
+                    resolve(db);
+                };
+                request.onerror = (e) => reject(e);
+            });
+        }
+
+        function saveVideoBlob(id, blob) {
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction('videos', 'readwrite');
+                const store = tx.objectStore('videos');
+                store.put({ id: id, blob: blob });
+                tx.oncomplete = () => resolve();
+                tx.onerror = (e) => reject(e);
+            });
+        }
+
+        function getVideoBlob(id) {
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction('videos', 'readonly');
+                const store = tx.objectStore('videos');
+                const request = store.get(id);
+                request.onsuccess = () => resolve(request.result ? request.result.blob : null);
+                request.onerror = (e) => reject(e);
+            });
+        }
+
+        // Application State
+        let videosState = [];
+        let activeCategory = 'Semua';
+        let currentVideoFile = null;
+        let currentCapturedThumbnail = null;
+        let activeVideo = null;
+
+        const CATEGORIES = ['Semua', 'Teknologi', 'Gaming', 'Musik', 'Edukasi', 'Hiburan'];
+
+        // Sample Pre-seeded Video Data
+        const SAMPLE_VIDEOS = [
+            {
+                id: 'sample-1',
+                title: 'Cyberpunk City Horizon - Animated Loop',
+                description: 'Pemandangan kota futuristik neon cyberpunk dengan suasana sinematik tinggi.',
+                category: 'Teknologi',
+                visibility: 'Publik',
+                views: 1420,
+                likes: 389,
+                timestamp: Date.now() - 86400000 * 2,
+                thumbnail: 'https://images.unsplash.com/photo-1508739773434-c26b3d09e071?w=600&auto=format&fit=crop&q=80',
+                videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+                comments: [
+                    { id: 1, text: 'Visualnya luar biasa sekali!', date: '1 hari yang lalu', likes: 12 },
+                    { id: 2, text: 'Sangat suka dengan pencahayaannya.', date: '5 jam yang lalu', likes: 3 }
+                ]
+            },
+            {
+                id: 'sample-2',
+                title: 'Gameplay Highlights - Epic Battle Sequence',
+                description: 'Kompilasi momen gameplay luar biasa dengan efek grafis yang menakjubkan.',
+                category: 'Gaming',
+                visibility: 'Publik',
+                views: 3200,
+                likes: 850,
+                timestamp: Date.now() - 86400000 * 5,
+                thumbnail: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=600&auto=format&fit=crop&q=80',
+                videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
+                comments: [
+                    { id: 101, text: 'Skill-nya mantap bang!', date: '3 hari yang lalu', likes: 45 }
+                ]
+            }
+        ];
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            lucide.createIcons();
+            await initDB();
+            loadVideosFromStorage();
+            renderCategoryFilters();
+            renderVideoGrid();
+            setupStudioListeners();
+            setupMainPlayerListeners();
+            setupSearchListeners();
+        });
+
+        // Local Storage Sync
+        function loadVideosFromStorage() {
+            const stored = localStorage.getItem('sp_videos_metadata');
+            if (stored) {
+                videosState = JSON.parse(stored);
+            } else {
+                videosState = SAMPLE_VIDEOS;
+                saveVideosToStorage();
+            }
+        }
+
+        function saveVideosToStorage() {
+            localStorage.setItem('sp_videos_metadata', JSON.stringify(videosState));
+        }
+
+        // View Switching
+        function switchTab(tab) {
+            const feedView = document.getElementById('view-feed');
+            const studioView = document.getElementById('view-studio');
+
+            if (tab === 'feed') {
+                feedView.classList.remove('hidden');
+                studioView.classList.add('hidden');
+                renderVideoGrid();
+            } else if (tab === 'studio') {
+                feedView.classList.add('hidden');
+                studioView.classList.remove('hidden');
+            }
+        }
+
+        // Categories Render
+        function renderCategoryFilters() {
+            const container = document.getElementById('categoryContainer');
+            container.innerHTML = CATEGORIES.map(cat => `
+                <button onclick="setCategory('${cat}')" 
+                        class="px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
+                            activeCategory === cat 
+                            ? 'bg-gradient-to-r from-brand-600 to-brand-accent text-white shadow-md shadow-brand-500/20' 
+                            : 'bg-slate-900 border border-dark-border text-gray-400 hover:text-white'
+                        }">
+                    ${cat}
+                </button>
+            `).join('');
+        }
+
+        function setCategory(cat) {
+            activeCategory = cat;
+            renderCategoryFilters();
+            renderVideoGrid();
+        }
+
+        // Search Filter
+        function setupSearchListeners() {
+            const desktopInput = document.getElementById('searchInput');
+            const mobileInput = document.getElementById('mobileSearchInput');
+
+            const handleSearch = (e) => {
+                const query = e.target.value.toLowerCase();
+                renderVideoGrid(query);
+            };
+
+            desktopInput.addEventListener('input', handleSearch);
+            mobileInput.addEventListener('input', handleSearch);
+        }
+
+        function renderVideoGrid(searchQuery = '') {
+            const grid = document.getElementById('videoGrid');
+            const emptyState = document.getElementById('emptyState');
+            const videoCountEl = document.getElementById('videoCount');
+
+            let filtered = videosState.filter(v => v.visibility === 'Publik' || v.visibility === undefined);
+
+            if (activeCategory !== 'Semua') {
+                filtered = filtered.filter(v => v.category === activeCategory);
+            }
+
+            if (searchQuery.trim() !== '') {
+                filtered = filtered.filter(v => 
+                    v.title.toLowerCase().includes(searchQuery) || 
+                    v.description.toLowerCase().includes(searchQuery) ||
+                    v.category.toLowerCase().includes(searchQuery)
+                );
+            }
+
+            videoCountEl.innerText = `${filtered.length} Video Tersedia`;
+
+            if (filtered.length === 0) {
+                grid.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                emptyState.classList.add('flex');
+                return;
+            } else {
+                emptyState.classList.add('hidden');
+                emptyState.classList.remove('flex');
+            }
+
+            grid.innerHTML = filtered.map(v => `
+                <div onclick="openWatchModal('${v.id}')" class="glass-panel rounded-2xl overflow-hidden cursor-pointer glow-hover group flex flex-col justify-between">
+                    <div>
+                        <!-- Thumbnail Wrapper -->
+                        <div class="relative aspect-video bg-black overflow-hidden">
+                            <img src="${v.thumbnail || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600&auto=format&fit=crop&q=80'}" 
+                                 alt="${v.title}" 
+                                 class="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                                 onerror="this.src='https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600&auto=format&fit=crop&q=80'">
+                            <div class="absolute inset-0 bg-black/30 group-hover:bg-black/10 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+                                <div class="w-12 h-12 rounded-full bg-brand-600/90 flex items-center justify-center text-white shadow-lg">
+                                    <i data-lucide="play" class="w-6 h-6 fill-white ml-0.5"></i>
+                                </div>
+                            </div>
+                            <span class="absolute bottom-2 right-2 bg-black/80 backdrop-blur text-[10px] text-gray-300 px-2 py-0.5 rounded-md font-mono">
+                                02:15
+                            </span>
+                        </div>
+
+                        <!-- Info Area -->
+                        <div class="p-4 space-y-2">
+                            <span class="text-[10px] font-semibold text-brand-accent uppercase tracking-wider bg-brand-500/10 px-2 py-0.5 rounded">
+                                ${v.category}
+                            </span>
+                            <h3 class="text-sm font-bold text-gray-100 line-clamp-2 leading-snug group-hover:text-brand-500 transition-colors">
+                                ${v.title}
+                            </h3>
+                            <p class="text-xs text-gray-400 line-clamp-2">${v.description || 'Tidak ada deskripsi.'}</p>
+                        </div>
+                    </div>
+
+                    <div class="px-4 pb-4 pt-2 border-t border-dark-border/40 flex items-center justify-between text-xs text-gray-400">
+                        <div class="flex items-center space-x-3">
+                            <span class="flex items-center gap-1"><i data-lucide="eye" class="w-3.5 h-3.5"></i> ${formatNumber(v.views)}</span>
+                            <span class="flex items-center gap-1"><i data-lucide="thumbs-up" class="w-3.5 h-3.5"></i> ${formatNumber(v.likes)}</span>
+                        </div>
+                        <span class="text-[11px] text-gray-500">${timeAgo(v.timestamp)}</span>
+                    </div>
+                </div>
+            `).join('');
+
+            lucide.createIcons();
+        }
+
+        function setupStudioListeners() {
+            const dropZone = document.getElementById('dropZone');
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropZone.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    dropZone.classList.add('border-brand-500', 'bg-brand-500/5');
+                }, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    dropZone.classList.remove('border-brand-500', 'bg-brand-500/5');
+                }, false);
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                if (files.length > 0 && files[0].type.startsWith('video/')) {
+                    processVideoFile(files[0]);
+                }
+            });
+        }
+
+        function handleFileSelect(e) {
+            const files = e.target.files;
+            if (files.length > 0) {
+                processVideoFile(files[0]);
+            }
+        }
+
+        function processVideoFile(file) {
+            currentVideoFile = file;
+            const videoPlayer = document.getElementById('studioVideoPlayer');
+            const uploadPrompt = document.getElementById('uploadPrompt');
+            const previewWrapper = document.getElementById('previewWrapper');
+            const thumbnailSection = document.getElementById('thumbnailSection');
+            const fileInfoText = document.getElementById('fileInfoText');
+            const publishBtn = document.getElementById('publishBtn');
+
+            const fileUrl = URL.createObjectURL(file);
+            videoPlayer.src = fileUrl;
+
+            uploadPrompt.classList.add('hidden');
+            previewWrapper.classList.remove('hidden');
+            thumbnailSection.classList.remove('hidden');
+
+            fileInfoText.innerText = `${file.name} (${(file.size / (1024 * 1024)).toFixed(2)} MB)`;
+
+            publishBtn.disabled = false;
+            publishBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+
+            // Setup Studio Video Custom Seekbar
+            videoPlayer.onloadedmetadata = () => {
+                const seekbar = document.getElementById('studioSeekbar');
+                seekbar.max = videoPlayer.duration;
+            };
+
+            videoPlayer.ontimeupdate = () => {
+                const seekbar = document.getElementById('studioSeekbar');
+                const timeDisplay = document.getElementById('studioTimeDisplay');
+                seekbar.value = videoPlayer.currentTime;
+                timeDisplay.innerText = `${formatTime(videoPlayer.currentTime)} / ${formatTime(videoPlayer.duration || 0)}`;
+            };
+
+            document.getElementById('studioSeekbar').oninput = (e) => {
+                videoPlayer.currentTime = e.target.value;
+            };
+        }
+
+        function toggleStudioPlay() {
+            const video = document.getElementById('studioVideoPlayer');
+            const playBtn = document.getElementById('studioPlayBtn');
+            if (video.paused) {
+                video.play();
+                playBtn.innerHTML = '<i data-lucide="pause" class="w-5 h-5"></i>';
+            } else {
+                video.pause();
+                playBtn.innerHTML = '<i data-lucide="play" class="w-5 h-5"></i>';
+            }
+            lucide.createIcons();
+        }
+
+        function setStudioVolume(val) {
+            const video = document.getElementById('studioVideoPlayer');
+            video.volume = val;
+        }
+
+        function captureFrameAsThumbnail() {
+            const video = document.getElementById('studioVideoPlayer');
+            if (!video || !video.videoWidth) {
+                showToast('Muat video terlebih dahulu!');
+                return;
+            }
+
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            currentCapturedThumbnail = canvas.toDataURL('image/jpeg');
+
+            const thumbPreview = document.getElementById('thumbnailPreview');
+            const noThumbText = document.getElementById('noThumbText');
+
+            thumbPreview.src = currentCapturedThumbnail;
+            thumbPreview.classList.remove('hidden');
+            noThumbText.classList.add('hidden');
+
+            showToast('Thumbnail berhasil ditangkap dari video!');
+        }
+
+        async function handleVideoUpload(e) {
+            e.preventDefault();
+            if (!currentVideoFile) return;
+
+            const title = document.getElementById('videoTitle').value;
+            const description = document.getElementById('videoDescription').value;
+            const category = document.getElementById('videoCategory').value;
+            const visibility = document.getElementById('videoVisibility').value;
+
+            const videoId = 'vid_' + Date.now();
+
+            // Save Binary Blob to IndexedDB
+            try {
+                await saveVideoBlob(videoId, currentVideoFile);
+            } catch (err) {
+                console.error('Gagal menyimpan video ke IndexedDB:', err);
+            }
+
+            const newVideo = {
+                id: videoId,
+                title: title,
+                description: description,
+                category: category,
+                visibility: visibility,
+                views: 0,
+                likes: 0,
+                timestamp: Date.now(),
+                thumbnail: currentCapturedThumbnail || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600&auto=format&fit=crop&q=80',
+                comments: []
+            };
+
+            videosState.unshift(newVideo);
+            saveVideosToStorage();
+
+            showToast('Video berhasil dipublikasikan!');
+            
+            // Reset Form & Switch
+            document.getElementById('uploadForm').reset();
+            document.getElementById('uploadPrompt').classList.remove('hidden');
+            document.getElementById('previewWrapper').classList.add('hidden');
+            document.getElementById('thumbnailSection').classList.add('hidden');
+            document.getElementById('thumbnailPreview').classList.add('hidden');
+            document.getElementById('noThumbText').classList.remove('hidden');
+            currentVideoFile = null;
+            currentCapturedThumbnail = null;
+
+            switchTab('feed');
+        }
+
+        async function openWatchModal(id) {
+            activeVideo = videosState.find(v => v.id === id);
+            if (!activeVideo) return;
+
+            // Increment View Counter
+            activeVideo.views = (activeVideo.views || 0) + 1;
+            saveVideosToStorage();
+
+            const modal = document.getElementById('watchModal');
+            const mainPlayer = document.getElementById('mainVideoPlayer');
+
+            document.getElementById('modalTitle').innerText = activeVideo.title;
+            document.getElementById('modalDescription').innerText = activeVideo.description || 'Tidak ada deskripsi.';
+            document.getElementById('modalCategory').innerText = activeVideo.category;
+            document.getElementById('modalViews').innerText = `${formatNumber(activeVideo.views)} ditonton`;
+            document.getElementById('modalDate').innerText = timeAgo(activeVideo.timestamp);
+            document.getElementById('likeCount').innerText = formatNumber(activeVideo.likes || 0);
+
+            // Handle Source (Sample URL vs Stored Blob)
+            if (activeVideo.videoUrl) {
+                mainPlayer.src = activeVideo.videoUrl;
+            } else {
+                const blob = await getVideoBlob(activeVideo.id);
+                if (blob) {
+                    mainPlayer.src = URL.createObjectURL(blob);
+                }
+            }
+
+            renderComments();
+
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            mainPlayer.play();
+            updatePlayIcon(true);
+        }
+
+        function closeWatchModal() {
+            const modal = document.getElementById('watchModal');
+            const mainPlayer = document.getElementById('mainVideoPlayer');
+
+            mainPlayer.pause();
+            mainPlayer.src = '';
+            modal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+            renderVideoGrid();
+        }
+
+        function setupMainPlayerListeners() {
+            const player = document.getElementById('mainVideoPlayer');
+            const seekbar = document.getElementById('mainSeekbar');
+            const timeDisplay = document.getElementById('mainTimeDisplay');
+
+            player.onloadedmetadata = () => {
+                seekbar.max = player.duration;
+            };
+
+            player.ontimeupdate = () => {
+                seekbar.value = player.currentTime;
+                timeDisplay.innerText = `${formatTime(player.currentTime)} / ${formatTime(player.duration || 0)}`;
+            };
+
+            seekbar.oninput = (e) => {
+                player.currentTime = e.target.value;
+            };
+
+            player.onended = () => {
+                updatePlayIcon(false);
+            };
+        }
+
+        function toggleMainPlay() {
+            const player = document.getElementById('mainVideoPlayer');
+            if (player.paused) {
+                player.play();
+                updatePlayIcon(true);
+            } else {
+                player.pause();
+                updatePlayIcon(false);
+            }
+        }
+
+        function updatePlayIcon(isPlaying) {
+            const icon = document.getElementById('mainPlayIcon');
+            if (isPlaying) {
+                icon.setAttribute('data-lucide', 'pause');
+            } else {
+                icon.setAttribute('data-lucide', 'play');
+            }
+            lucide.createIcons();
+        }
+
+        function setMainVolume(val) {
+            const player = document.getElementById('mainVideoPlayer');
+            player.volume = val;
+            player.muted = (val == 0);
+        }
+
+        function toggleMainMute() {
+            const player = document.getElementById('mainVideoPlayer');
+            player.muted = !player.muted;
+            const volumeIcon = document.getElementById('mainVolumeIcon');
+            volumeIcon.setAttribute('data-lucide', player.muted ? 'volume-x' : 'volume-2');
+            lucide.createIcons();
+        }
+
+        function setMainSpeed(speed) {
+            const player = document.getElementById('mainVideoPlayer');
+            player.playbackRate = parseFloat(speed);
+        }
+
+        function toggleFullscreen() {
+            const player = document.getElementById('mainVideoPlayer');
+            if (player.requestFullscreen) {
+                player.requestFullscreen();
+            }
+        }
+
+        function handleLike() {
+            if (!activeVideo) return;
+            activeVideo.likes = (activeVideo.likes || 0) + 1;
+            document.getElementById('likeCount').innerText = formatNumber(activeVideo.likes);
+            saveVideosToStorage();
+            showToast('Menyukai video ini!');
+        }
+
+        function handleBookmark() {
+            showToast('Video berhasil disimpan ke koleksi!');
+        }
+
+        function shareVideo() {
+            const dummy = document.createElement('input');
+            document.body.appendChild(dummy);
+            dummy.value = window.location.href;
+            dummy.select();
+            document.execCommand('copy');
+            document.body.removeChild(dummy);
+            showToast('Tautan video berhasil disalin!');
+        }
+
+        function renderComments() {
+            const container = document.getElementById('commentsContainer');
+            const countEl = document.getElementById('commentCount');
+            const comments = activeVideo.comments || [];
+
+            countEl.innerText = comments.length;
+
+            if (comments.length === 0) {
+                container.innerHTML = '<p class="text-xs text-gray-500 py-2">Belum ada komentar. Jadilah yang pertama!</p>';
+                return;
+            }
+
+            container.innerHTML = comments.map(c => `
+                <div class="flex space-x-3 text-xs bg-slate-900/50 p-3 rounded-xl border border-dark-border/40">
+                    <div class="w-7 h-7 rounded-full bg-indigo-600/30 text-indigo-300 flex items-center justify-center font-bold">
+                        U
+                    </div>
+                    <div class="flex-1 space-y-1">
+                        <div class="flex items-center justify-between">
+                            <span class="font-semibold text-gray-300">Pengguna</span>
+                            <span class="text-[10px] text-gray-500">${c.date}</span>
+                        </div>
+                        <p class="text-gray-300">${c.text}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function addComment() {
+            const input = document.getElementById('commentInput');
+            const text = input.value.trim();
+            if (!text || !activeVideo) return;
+
+            if (!activeVideo.comments) activeVideo.comments = [];
+
+            activeVideo.comments.unshift({
+                id: Date.now(),
+                text: text,
+                date: 'Baru saja',
+                likes: 0
+            });
+
+            saveVideosToStorage();
+            renderComments();
+            input.value = '';
+            showToast('Komentar ditambahkan!');
+        }
+
+        // Helper Toast Notification
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMessage');
+            toastMsg.innerText = msg;
+
+            toast.classList.remove('translate-y-24', 'opacity-0', 'pointer-events-none');
+            setTimeout(() => {
+                toast.classList.add('translate-y-24', 'opacity-0', 'pointer-events-none');
+            }, 3000);
+        }
+
+        // Formatters
+        function formatTime(seconds) {
+            const m = Math.floor(seconds / 60);
+            const s = Math.floor(seconds % 60);
+            return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        }
+
+        function formatNumber(num) {
+            if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+            if (num >= 1000) return (num / 1000).toFixed(1) + 'k';
+            return num || 0;
+        }
+
+        function timeAgo(timestamp) {
+            if (!timestamp) return 'Baru saja';
+            const seconds = Math.floor((Date.now() - timestamp) / 1000);
+            let interval = Math.floor(seconds / 31536000);
+            if (interval >= 1) return interval + " tahun lalu";
+            interval = Math.floor(seconds / 2592000);
+            if (interval >= 1) return interval + " bulan lalu";
+            interval = Math.floor(seconds / 86400);
+            if (interval >= 1) return interval + " hari lalu";
+            interval = Math.floor(seconds / 3600);
+            if (interval >= 1) return interval + " jam lalu";
+            interval = Math.floor(seconds / 60);
+            if (interval >= 1) return interval + " menit lalu";
+            return "Baru saja";
+        }
+    </script>
+</body>
+</html>
